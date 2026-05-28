@@ -1,7 +1,7 @@
 import requests
 import time
 
-TOKEN = "TU_NUEVO_TOKEN"
+TOKEN = "8887694669:AAFWg18ymxo3CV7yl7EWMSC6hK16RegxTug"
 CHAT_ID = "7290895497"
 
 def enviar(mensaje):
