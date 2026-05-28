@@ -21,6 +21,7 @@ def precio_binance(simbolo):
 
 def responder(texto):
     texto = texto.upper().strip()
+    enviar("Recibí exactamente esto: " + texto)
 
     if texto == "BTC":
         btc = precio_binance("BTCUSDT")
