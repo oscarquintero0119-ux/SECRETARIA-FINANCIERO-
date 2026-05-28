@@ -1,201 +1,69 @@
 import requests
 import time
-import yfinance as yf
 
 TOKEN = "8887694669:AAFWg18ymxo3CV7yl7EWMSC6hK16RegxTug"
 CHAT_ID = "7290895497"
 
-BTC_QTY = 0.00291896
-SOL_QTY = 0.99062948
-USDC_QTY = 80.07315188
-
-BTC_INV = 800000
-SOL_INV = 300000
-USDC_INV = 300000
-
-PFBCOLOM_QTY = 11
-PFBCOLOM_INV = 706200
-
-ECOPETROL_QTY = 110
-ECOPETROL_INV = 300000
-
-USD_COP = 4000
-
-
 def enviar(mensaje):
     url = "https://api.telegram.org/bot" + TOKEN + "/sendMessage"
-
     payload = {
         "chat_id": CHAT_ID,
         "text": mensaje
     }
-
     requests.post(url, data=payload)
-
 
 def precio_binance(simbolo):
     url = "https://api.binance.com/api/v3/ticker/price?symbol=" + simbolo
+    respuesta = requests.get(url)
+    datos = respuesta.json()
+    precio = datos["price"]
+    return float(precio)
 
-    data = requests.get(url).json()
+def responder(texto):
+    texto = texto.upper().strip()
 
-    return float(data["price"])
+    if texto == "BTC":
+        btc = precio_binance("BTCUSDT")
+        enviar("🟠 BTC actual: " + str(round(btc, 2)) + " USDT")
 
+    elif texto == "SOL":
+        sol = precio_binance("SOLUSDT")
+        enviar("🟢 SOL actual: " + str(round(sol, 2)) + " USDT")
 
-def precio_yahoo(ticker):
-    data = yf.Ticker(ticker).history(period="1d")
+    elif texto == "REPORTE" or texto == "PORTAFOLIO":
+        btc = precio_binance("BTCUSDT")
+        sol = precio_binance("SOLUSDT")
 
-    return float(data["Close"].iloc[-1])
+        mensaje = (
+            "📊 REPORTE DEL MERCADO\n\n"
+            "🟠 BTC: " + str(round(btc, 2)) + " USDT\n"
+            "🟢 SOL: " + str(round(sol, 2)) + " USDT\n\n"
+            "🤖 Secretaria financiera activa."
+        )
 
+        enviar(mensaje)
 
-def linea(nombre, invertido, actual):
-
-    ganancia = actual - invertido
-
-    rentabilidad = (ganancia / invertido) * 100
-
-    return (
-        f"{nombre}\n"
-        f"Invertido: ${invertido:,.0f} COP\n"
-        f"Valor actual: ${actual:,.0f} COP\n"
-        f"Ganancia/Pérdida: ${ganancia:,.0f} COP\n"
-        f"Rentabilidad: {rentabilidad:.2f}%\n"
-    )
-
-
-def reporte_portafolio():
-
-    btc_price = precio_binance("BTCUSDT")
-    sol_price = precio_binance("SOLUSDT")
-
-    btc_actual = BTC_QTY * btc_price * USD_COP
-    sol_actual = SOL_QTY * sol_price * USD_COP
-    usdc_actual = USDC_QTY * USD_COP
-
-    try:
-        pfb_price = precio_yahoo("PFBCOLOM.CL")
-    except:
-        pfb_price = PFBCOLOM_INV / PFBCOLOM_QTY
-
-    try:
-        eco_price = precio_yahoo("ECOPETROL.CL")
-    except:
-        eco_price = ECOPETROL_INV / ECOPETROL_QTY
-
-    pfb_actual = PFBCOLOM_QTY * pfb_price
-    eco_actual = ECOPETROL_QTY * eco_price
-
-    total_invertido = (
-        BTC_INV +
-        SOL_INV +
-        USDC_INV +
-        PFBCOLOM_INV +
-        ECOPETROL_INV
-    )
-
-    total_actual = (
-        btc_actual +
-        sol_actual +
-        usdc_actual +
-        pfb_actual +
-        eco_actual
-    )
-
-    ganancia_total = total_actual - total_invertido
-
-    rentabilidad_total = (
-        ganancia_total / total_invertido
-    ) * 100
-
-    mensaje = (
-        "🤖 SECRETARIA FINANCIERA\n\n"
-        "📊 REPORTE REAL DEL PORTAFOLIO\n\n"
-        f"🟠 BTC precio: {btc_price:,.2f} USDT\n"
-        f"🟢 SOL precio: {sol_price:,.2f} USDT\n"
-        f"🏦 PFBCOLOM precio: ${pfb_price:,.0f} COP\n"
-        f"🛢️ ECOPETROL precio: ${eco_price:,.0f} COP\n\n"
-        + linea("🟠 BTC", BTC_INV, btc_actual)
-        + "\n"
-        + linea("🟢 SOL", SOL_INV, sol_actual)
-        + "\n"
-        + linea("💵 USDC", USDC_INV, usdc_actual)
-        + "\n"
-        + linea("🏦 PFBCOLOM", PFBCOLOM_INV, pfb_actual)
-        + "\n"
-        + linea("🛢️ ECOPETROL", ECOPETROL_INV, eco_actual)
-        + "\n"
-        + f"💰 TOTAL INVERTIDO: ${total_invertido:,.0f} COP\n"
-        + f"📈 VALOR ACTUAL: ${total_actual:,.0f} COP\n"
-        + f"📌 GANANCIA/PÉRDIDA TOTAL: ${ganancia_total:,.0f} COP\n"
-        + f"📊 RENTABILIDAD TOTAL: {rentabilidad_total:.2f}%"
-    )
-
-    return mensaje
-
+    else:
+        enviar("Escribe BTC, SOL, REPORTE o PORTAFOLIO")
 
 ultimo_update = 0
 
-enviar("🤖 Secretaria financiera actualizada correctamente.")
-
+enviar("🤖 Secretaria financiera reiniciada correctamente.")
 
 while True:
-
     try:
-
-        url = (
-            "https://api.telegram.org/bot"
-            + TOKEN
-            + "/getUpdates?offset="
-            + str(ultimo_update + 1)
-        )
-
-        datos = requests.get(url).json()
+        url = "https://api.telegram.org/bot" + TOKEN + "/getUpdates?offset=" + str(ultimo_update + 1)
+        respuesta = requests.get(url)
+        datos = respuesta.json()
 
         for item in datos["result"]:
-
             ultimo_update = item["update_id"]
 
-            if (
-                "message" in item and
-                "text" in item["message"]
-            ):
+            if "message" in item and "text" in item["message"]:
+                texto = item["message"]["text"]
+                responder(texto)
 
-                texto = (
-                    item["message"]["text"]
-                    .upper()
-                    .strip()
-                )
-
-                if texto == "BTC":
-
-                    enviar(
-                        f"🟠 BTC actual: "
-                        f"{precio_binance('BTCUSDT'):,.2f} USDT"
-                    )
-
-                elif texto == "SOL":
-
-                    enviar(
-                        f"🟢 SOL actual: "
-                        f"{precio_binance('SOLUSDT'):,.2f} USDT"
-                    )
-
-                elif (
-                    texto == "PORTAFOLIO" or
-                    texto == "REPORTE"
-                ):
-
-                    enviar(
-                        reporte_portafolio()
-                    )
-
-                else:
-
-                    enviar(
-                        "Escribe BTC, SOL, REPORTE o PORTAFOLIO"
-                    )
-
-    except Exception as e:
-
-        print("Error:", e)
+    except Exception as error:
+        print("ERROR:", error)
 
     time.sleep(3)
