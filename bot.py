@@ -2,7 +2,7 @@ import requests
 import time
 
 # ⚠️ IMPORTANTE: regenera este token en @BotFather (quedó expuesto al compartirlo).
-TOKEN = "TU_TOKEN_AQUI"
+TOKEN = "8887694669:AAFWg18ymxo3CV7yl7EWMSC6hK16RegxTug"
 CHAT_ID = "7290895497"
 
 BTC_CANTIDAD = 0.00291896
